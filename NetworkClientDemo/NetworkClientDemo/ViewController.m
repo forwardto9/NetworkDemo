@@ -165,14 +165,16 @@ void clientSocketCallback(CFReadStreamRef stream, CFStreamEventType event, void 
                 }
                 CFRelease(error);
             }
+            
+            // clean up
+            cleanupCFNetworkResources(stream);
+            
             break;
         }
         case kCFStreamEventEndEncountered: { // finish received data
             [selfVC didFinishedReceiveData];
             // clean up
-            CFReadStreamClose(stream);
-            CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
-            CFRunLoopStop(CFRunLoopGetCurrent());
+            cleanupCFNetworkResources(stream);
             break;
         }
             
@@ -181,6 +183,13 @@ void clientSocketCallback(CFReadStreamRef stream, CFStreamEventType event, void 
     }
 }
 
+void cleanupCFNetworkResources(CFReadStreamRef stream) {
+    CFReadStreamClose(stream);
+    CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+#pragma mark - Common method for resolving data
 - (void)didReceiveData:(NSData *)data {
     if (!_receivedData) {
         _receivedData = [NSMutableData new];
@@ -227,7 +236,7 @@ void clientSocketCallback(CFReadStreamRef stream, CFStreamEventType event, void 
 }
 
 - (void)readStream {
-    char buf[1024];
+    char buf[kBufferSize];
     ssize_t hasReadLength = 0;
     while ((hasReadLength = recv(CFSocketGetNative(_socket), buf, sizeof(buf), 0))) {
         NSLog(@"receive data : %@", [NSString stringWithCString:buf encoding:NSUTF8StringEncoding]);
