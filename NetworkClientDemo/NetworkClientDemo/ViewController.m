@@ -13,7 +13,7 @@
 #import <Foundation/Foundation.h>
 #define kBufferSize 1024
 
-@interface ViewController ()<NSStreamDelegate> {
+@interface ViewController ()<NSStreamDelegate, NSURLConnectionDataDelegate, NSURLConnectionDelegate/*this protocol for authencation*/, NSURLSessionDataDelegate> {
     CFSocketRef _socket;
     BOOL isOnline;
     NSMutableData *_receivedData;
@@ -26,9 +26,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    [self createSocketConnectUsingCFScoket];
-    [self createConnectUsingCFNetwork];
-    [self createConnectUsingNSStream];
+    [self createConnectionByUsingCFScoket];
+    [self createConnectionByUsingCFNetwork];
+    [self createConnectionByUsingNSStream];
+    [self createConnectionByUsingNSURLConnection];
+    [self createConnectionByUsingNSURLSession];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -36,8 +38,163 @@
     // Dispose of any resources that can be recreated.
 }
 
+#pragma mark - NSURLSession
+- (void)createConnectionByUsingNSURLSession {
+    NSURL *urlWithParams = [NSURL URLWithString:@"http://192.168.10.10:12345/login.php?param1=value1&param2=value2"];
+    NSURLSession *session = [NSURLSession sharedSession];
+    
+    // method 1
+    [[session dataTaskWithURL:urlWithParams completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        //
+        if (error) {
+            if (error.code == noErr) {
+                //
+            } else {
+                NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", error.localizedDescription, error.code];
+                [self networFailedWihError:errorMessage];
+            }
+        } else {
+            // if json formate, using NSJSONSerialization to decode data
+            NSLog(@"Response data:%@", data);
+        }
+    }] resume];
+    
+    // method 2
+    NSURLRequest *request = [NSURLRequest requestWithURL:urlWithParams cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:15.0];
+    [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        //
+        if (error) {
+            if (error.code == noErr) {
+                //
+            } else {
+                NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", error.localizedDescription, error.code];
+                [self networFailedWihError:errorMessage];
+            }
+        } else {
+            // if json formate, using NSJSONSerialization to decode data
+            NSLog(@"Response data:%@", data);
+        }
+    }] resume];
+    
+    // method 3
+    NSURL *urlWithoutParams = [NSURL URLWithString:@"http://192.168.10.10:23328/login.php"];
+    NSMutableURLRequest *mutableRequest = [NSMutableURLRequest requestWithURL:urlWithoutParams cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:15.0];
+    mutableRequest.HTTPMethod = @"POST";
+    mutableRequest.HTTPBody   = [@"param1=value1&param2=value2" dataUsingEncoding:NSUTF8StringEncoding];
+    [[session dataTaskWithRequest:mutableRequest completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        //
+        if (error) {
+            if (error.code == noErr) {
+                //
+            } else {
+                NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", error.localizedDescription, error.code];
+                [self networFailedWihError:errorMessage];
+            }
+        } else {
+            // if json formate, using NSJSONSerialization to decode data
+            NSLog(@"Response data:%@", data);
+        }
+    }] resume];
+    
+    // method 4
+    NSURLSession *delegateSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[NSOperationQueue new]];
+    [[delegateSession dataTaskWithURL:urlWithParams] resume];
+}
+
+#pragma mark - NSURLSessionDataDelegate
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler {
+    NSLog(@"[NSURLSession] get response!");
+    completionHandler(NSURLSessionResponseAllow);
+}
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
+    NSLog(@"[NSURLSession] getting data from server!");
+    if (!_receivedData) {
+        _receivedData = [NSMutableData new];
+    }
+    [_receivedData appendData:data];
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+    [task cancel];
+    
+    if (error && error.code != noErr) {
+        NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", error.localizedDescription, error.code];
+        [self networFailedWihError:errorMessage];
+        [session invalidateAndCancel];
+    } else {
+        [session finishTasksAndInvalidate];
+        NSLog(@"[NSURLSession] finished!");
+    }
+}
+
+#pragma mark - NSURLConnection Deprecated iOS 9.0
+- (void)createConnectionByUsingNSURLConnection {
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@:%d", @"127.0.0.1", 18888]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:15.0];
+    request.HTTPMethod = @"post";
+    [request setValue:@"json/xml" forHTTPHeaderField:@"Content-Type"];
+    request.HTTPBody = [@"param1=value1&param2=value2" dataUsingEncoding:NSUTF8StringEncoding];
+    
+    NSURLResponse *response = nil;
+    NSError *error = nil;
+    
+    // Sync
+    NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    if (error) {
+        NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", error.localizedDescription, error.code];
+        [self networFailedWihError:errorMessage];
+    } else {
+        // if json formate, using NSJSONSerialization to decode data
+        NSLog(@"Response data:%@", data);
+    }
+    
+    // Async
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue new] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
+        //
+        if (connectionError) {
+            if (connectionError.code == noErr) {
+                //
+            } else {
+                NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", connectionError.localizedDescription, connectionError.code];
+                [self networFailedWihError:errorMessage];
+            }
+        } else {
+            // if json formate, using NSJSONSerialization to decode data
+            NSLog(@"Response data:%@", data);
+        }
+    }];
+    
+    // delegate
+    NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:NO];
+    [connection start];
+}
+
+#pragma mark - NSURLConnectionDataDelegate
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+    NSLog(@"[NSURLConnection] get response!");
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+    if (!_receivedData) {
+        _receivedData = [NSMutableData new];
+    }
+    [_receivedData appendData:data];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
+    [connection cancel];
+    NSLog(@"Get whole data and check");
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
+    [connection cancel];
+    NSString *errorMessage = [NSString stringWithFormat:@"Failed while reading stream, error :%@, code :(%ld)", error.localizedDescription, error.code];
+    [self networFailedWihError:errorMessage];
+}
+
 #pragma mark - NSStream
-- (void)createConnectUsingNSStream {
+- (void)createConnectionByUsingNSStream {
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@:%d", @"127.0.0.1", 18888]];
     NSThread *backgroundThread = [[NSThread alloc] initWithTarget:self selector:@selector(loadDataUsingNSStreamFromURL:) object:url];
     [backgroundThread start];
@@ -50,6 +207,11 @@
     [readStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     [readStream open];
     [[NSRunLoop currentRunLoop] run];
+}
+
+- (void)cleanupStream:(NSStream *)aStream {
+    [aStream close];
+    [aStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
 }
 
 #pragma mark - NSStreamDelegate
@@ -90,13 +252,8 @@
     }
 }
 
-- (void)cleanupStream:(NSStream *)aStream {
-    [aStream close];
-    [aStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-}
-
 #pragma mark - CFNetwork
-- (void)createConnectUsingCFNetwork {
+- (void)createConnectionByUsingCFNetwork {
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@:%d", @"127.0.0.1", 18888]];
     NSThread *backgroundThread = [[NSThread alloc] initWithTarget:self selector:@selector(loadDataFromURL:) object:url];
     [backgroundThread start];
@@ -206,7 +363,7 @@ void cleanupCFNetworkResources(CFReadStreamRef stream) {
     NSLog(@"%@", errorInfo);
 }
 #pragma mark - CFSocekt Operation
-- (void)createSocketConnectUsingCFScoket {
+- (void)createConnectionByUsingCFScoket {
     _socket = CFSocketCreate(kCFAllocatorDefault, AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, nil, NULL);
     if (_socket) {
         struct sockaddr_in serveraddr;
