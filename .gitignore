@@ -1,0 +1,8 @@
+
+*.xcuserstate
+
+*.xcbkptlist
+
+*.xcscheme
+
+NetworkClientDemo/NetworkClientDemo.xcodeproj/xcuserdata/forwardto9.xcuserdatad/xcschemes/xcschememanagement.plist
