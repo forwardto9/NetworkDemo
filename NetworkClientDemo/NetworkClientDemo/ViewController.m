@@ -13,6 +13,8 @@
 #import <Foundation/Foundation.h>
 #define kBufferSize 1024
 
+// @link [Networking Overview](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/NetworkingOverview/Introduction/Introduction.html#//apple_ref/doc/uid/TP40010220-CH12-BBCFIHFH)
+
 @interface ViewController ()<NSStreamDelegate, NSURLConnectionDataDelegate, NSURLConnectionDelegate/*this protocol for authencation*/, NSURLSessionDataDelegate> {
     CFSocketRef _socket;
     BOOL isOnline;
