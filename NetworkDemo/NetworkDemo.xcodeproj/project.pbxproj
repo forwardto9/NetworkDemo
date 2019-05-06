@@ -10,6 +10,16 @@
 		C20435E21D88E4A400558267 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C20435E11D88E4A400558267 /* main.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		C20D87E4228014DA00DC33E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C20D87E0228014DA00DC33E3 /* NetworkClientDemo.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C20435F11D88EAD300558267;
+			remoteInfo = NetworkClientDemo;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		C20435DC1D88E4A400558267 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -25,6 +35,7 @@
 /* Begin PBXFileReference section */
 		C20435DE1D88E4A400558267 /* NetworkDemo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = NetworkDemo; sourceTree = BUILT_PRODUCTS_DIR; };
 		C20435E11D88E4A400558267 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		C20D87E0228014DA00DC33E3 /* NetworkClientDemo.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NetworkClientDemo.xcodeproj; path = ../NetworkClientDemo/NetworkClientDemo.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +52,7 @@
 		C20435D51D88E4A400558267 = {
 			isa = PBXGroup;
 			children = (
+				C20D87E0228014DA00DC33E3 /* NetworkClientDemo.xcodeproj */,
 				C20435E01D88E4A400558267 /* NetworkDemo */,
 				C20435DF1D88E4A400558267 /* Products */,
 			);
@@ -60,6 +72,14 @@
 				C20435E11D88E4A400558267 /* main.m */,
 			);
 			path = NetworkDemo;
+			sourceTree = "<group>";
+		};
+		C20D87E1228014DA00DC33E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C20D87E5228014DA00DC33E3 /* NetworkClientDemo.app */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -101,17 +121,34 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = C20435D51D88E4A400558267;
 			productRefGroup = C20435DF1D88E4A400558267 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C20D87E1228014DA00DC33E3 /* Products */;
+					ProjectRef = C20D87E0228014DA00DC33E3 /* NetworkClientDemo.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				C20435DD1D88E4A400558267 /* NetworkDemo */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		C20D87E5228014DA00DC33E3 /* NetworkClientDemo.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = NetworkClientDemo.app;
+			remoteRef = C20D87E4228014DA00DC33E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C20435DA1D88E4A400558267 /* Sources */ = {
@@ -239,6 +276,7 @@
 				C20435E71D88E4A400558267 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
